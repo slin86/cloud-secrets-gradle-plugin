@@ -1,0 +1,68 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'slin.gradle'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.spockframework:spock-bom:2.4-M6-groovy-4.0')
+    testImplementation 'org.spockframework:spock-core'
+    testImplementation gradleTestKit()
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+gradlePlugin {
+    plugins {
+        k8sSecrets {
+            id = 'slin.k8s-secrets'
+            displayName = 'Kubernetes Secrets Loader'
+            description = 'Loads Kubernetes Secrets via kubectl and provides them as local system properties.'
+            implementationClass = 'slin.gradle.K8sSecretsPlugin'
+        }
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// ============================================================
+// Publishing
+// ============================================================
+// 'java-gradle-plugin':
+//   - das Plugin-JAR              (slin.gradle:k8s-secrets-gradle-plugin)
+//   - den Plugin-Marker           (slin.k8s-secrets:slin.k8s-secrets.gradle.plugin)
+// maven-publish published beide.
+//publishing {
+//    repositories {
+//        // Beispiel: internes Azure Artifacts Feed.
+//        // URL und Credentials anpassen bzw. über gradle.properties / Env setzen.
+//        maven {
+//            name = 'internal'
+//            url = uri(
+//                project.findProperty('internalRepoUrl')
+//                    ?: 'https://pkgs.dev.azure.com/<org>/<project>/_packaging/<feed>/maven/v1'
+//            )
+//            credentials {
+//                username = project.findProperty('internalRepoUser') ?: System.getenv('AZURE_ARTIFACTS_USER')
+//                password = project.findProperty('internalRepoToken') ?: System.getenv('AZURE_ARTIFACTS_TOKEN')
+//            }
+//        }
+//        // Zum lokalen Testen:
+//        mavenLocal()
+//    }
+//}
