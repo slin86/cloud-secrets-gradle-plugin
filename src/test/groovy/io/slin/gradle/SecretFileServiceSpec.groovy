@@ -12,7 +12,7 @@ class SecretFileServiceSpec extends Specification {
 
     def "writing and reading env format returns the same values"() {
         given:
-        def f = tmp.resolve('secrets.env').toFile()
+        def f = tmp.resolve('secrets.properties').toFile()
         def svc = new io.slin.gradle.SecretFileService(f, 'env', 3_600_000L)
 
         when:

@@ -46,7 +46,7 @@ class KvFunctionalSpec extends Specification {
             plugins { id 'io.slin.secrets' }
             secretsLoader {
                 useFile = true
-                targetEnvFile = "build/out/secrets.env"
+                targetEnvFile = "build/out/secrets.properties"
                 kvSecrets {
                     az = '${stub.toAbsolutePath()}'
                     azureKeyVaultUrl = 'https://my-vault.vault.azure.net/'
@@ -59,7 +59,7 @@ class KvFunctionalSpec extends Specification {
         runner('updateSecretsFile').build()
 
         then:
-        def txt = dir.resolve('build/out/secrets.env').toFile().text
+        def txt = dir.resolve('build/out/secrets.properties').toFile().text
         txt.contains('DB_USER=appuser')
         txt.contains('DB_PASS=s3cr3t')
     }
@@ -72,7 +72,7 @@ class KvFunctionalSpec extends Specification {
             plugins { id 'io.slin.secrets' }
             secretsLoader {
                 useFile = true
-                targetEnvFile = "build/out/secrets.env"
+                targetEnvFile = "build/out/secrets.properties"
                 kvSecrets {
                     az = '${stub.toAbsolutePath()}'
                     azureKeyVaultUrl = 'https://my-vault.vault.azure.net/'
@@ -85,7 +85,7 @@ class KvFunctionalSpec extends Specification {
         runner('updateSecretsFile').build()
 
         then:
-        dir.resolve('build/out/secrets.env').toFile().text.contains('MY_ENV_NAME=plain-string-value')
+        dir.resolve('build/out/secrets.properties').toFile().text.contains('MY_ENV_NAME=plain-string-value')
     }
 
     def "injection with useFile false sets an env var on an Exec task"() {

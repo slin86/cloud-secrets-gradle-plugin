@@ -113,7 +113,7 @@ class SecretsPlugin implements Plugin<Project> {
         if (ext.targetEnvFile) {
             target = project.file(ext.targetEnvFile)
         } else {
-            def fileName = ext.fileFormat == 'properties' ? 'secrets.properties' : 'secrets.env'
+            def fileName = ext.fileFormat == 'properties' ? 'secrets.properties' : 'secrets.properties'
             target = project.layout.buildDirectory.file("slin-secrets/${fileName}").get().asFile
         }
         return new io.slin.gradle.SecretFileService(target, ext.fileFormat, SecretFileService.parseMaxAgeMillis(ext.maxAge))

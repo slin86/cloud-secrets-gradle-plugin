@@ -16,7 +16,7 @@ import io.slin.gradle.kv.KvSecretsConfig
  *
  *       // Feature 2: use a cache file.
  *       useFile = false
- *       targetEnvFile = null          // default: build/slin-secrets/secrets.env
+ *       targetEnvFile = null          // default: build/slin-secrets/secrets.properties
  *       fileFormat = 'env'            // 'env' or 'properties'
  *       maxAge = '1h'                 // 30m, 2h, 1d, 45s
  *

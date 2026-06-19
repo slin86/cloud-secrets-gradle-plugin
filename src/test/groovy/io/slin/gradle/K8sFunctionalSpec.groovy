@@ -52,7 +52,7 @@ class K8sFunctionalSpec extends Specification {
             plugins { id 'io.slin.secrets' }
             secretsLoader {
                 useFile = true
-                targetEnvFile = "build/out/secrets.env"
+                targetEnvFile = "build/out/secrets.properties"
                 k8sSecrets {
                     kubectl = '${stub.toAbsolutePath()}'
                     secret { namespace = 'kuma-v2'; name = 'test-secret' }
@@ -65,7 +65,7 @@ class K8sFunctionalSpec extends Specification {
 
         then:
         result.output.contains('Wrote')
-        def f = dir.resolve('build/out/secrets.env').toFile()
+        def f = dir.resolve('build/out/secrets.properties').toFile()
         f.exists()
         f.text.contains('test-name=ich komme aus dem KeyVault')
     }
@@ -78,7 +78,7 @@ class K8sFunctionalSpec extends Specification {
             plugins { id 'io.slin.secrets' }
             secretsLoader {
                 useFile = true
-                targetEnvFile = "build/out/secrets.env"
+                targetEnvFile = "build/out/secrets.properties"
                 k8sSecrets {
                     kubectl = '${stub.toAbsolutePath()}'
                     includeNamespacePrefix = true
@@ -92,13 +92,13 @@ class K8sFunctionalSpec extends Specification {
         runner('updateSecretsFile').build()
 
         then:
-        dir.resolve('build/out/secrets.env').toFile().text.contains('kuma-v2_test-secret_test-name=value')
+        dir.resolve('build/out/secrets.properties').toFile().text.contains('kuma-v2_test-secret_test-name=value')
     }
 
     def "syncSecretsFile skips a fresh file"() {
         given:
         def stub = kubectlStub('{ "data": { "a": "dmFsdWU=" } }')
-        def envFile = dir.resolve('build/out/secrets.env')
+        def envFile = dir.resolve('build/out/secrets.properties')
         Files.createDirectories(envFile.parent)
         Files.writeString(envFile, "a=existing\n") // fresh, just created
 
@@ -106,7 +106,7 @@ class K8sFunctionalSpec extends Specification {
             plugins { id 'io.slin.secrets' }
             secretsLoader {
                 useFile = true
-                targetEnvFile = "build/out/secrets.env"
+                targetEnvFile = "build/out/secrets.properties"
                 maxAge = '1h'
                 k8sSecrets {
                     kubectl = '${stub.toAbsolutePath()}'
@@ -126,7 +126,7 @@ class K8sFunctionalSpec extends Specification {
     def "when the source is unreachable the existing file is kept"() {
         given:
         def failStub = kubectlFailStub()
-        def envFile = dir.resolve('build/out/secrets.env')
+        def envFile = dir.resolve('build/out/secrets.properties')
         Files.createDirectories(envFile.parent)
         Files.writeString(envFile, "a=cached\n")
         envFile.toFile().setLastModified(System.currentTimeMillis() - 7_200_000L) // 2h old, stale
@@ -135,7 +135,7 @@ class K8sFunctionalSpec extends Specification {
             plugins { id 'io.slin.secrets' }
             secretsLoader {
                 useFile = true
-                targetEnvFile = "build/out/secrets.env"
+                targetEnvFile = "build/out/secrets.properties"
                 maxAge = '1h'
                 k8sSecrets {
                     kubectl = '${failStub.toAbsolutePath()}'
