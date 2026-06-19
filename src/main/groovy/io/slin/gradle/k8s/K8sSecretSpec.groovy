@@ -1,6 +1,6 @@
 package io.slin.gradle.k8s
 
-/** Ein einzelnes Kubernetes Secret. */
+/** A single Kubernetes secret. */
 class K8sSecretSpec {
     String namespace
     String name

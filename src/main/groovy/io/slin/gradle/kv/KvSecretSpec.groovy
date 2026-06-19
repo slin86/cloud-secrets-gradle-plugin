@@ -1,12 +1,12 @@
 package io.slin.gradle.kv
 
 /**
- * Ein einzelnes Azure Key Vault Secret.
+ * A single Azure Key Vault secret.
  *
- * type = 'json'   -&gt; Wert ist ein JSON-Objekt mit key:value-Paaren.
- *                    Jeder Key wird zu einer eigenen Variable.
- * type = 'string' -&gt; Wert ist ein String. Variablenname = Secret-Name in
- *                    UPPERCASE (oder explizit via envName).
+ * type json   means the value is a JSON object with key value pairs.
+ *             Each key becomes its own variable.
+ * type string means the value is a string. Variable name is the secret
+ *             name in upper case (or explicit via envName).
  */
 class KvSecretSpec {
     String name

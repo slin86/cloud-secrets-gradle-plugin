@@ -3,22 +3,21 @@ package io.slin.gradle.provider
 import org.gradle.api.logging.Logger
 
 /**
- * Eine Quelle für Secrets. Liefert eine Map envName -&gt; value.
- * Die identischen Features (Task-Injection, File-Caching) konsumieren
- * ausschließlich diese Map – unabhängig davon, woher die Secrets stammen.
+ * A source of secrets. Returns a map of envName to value.
+ * The shared features (task injection, file caching) consume only this map,
+ * regardless of where the secrets originate.
  */
 interface SecretProvider {
 
     /**
-     * Löst alle konfigurierten Secrets auf.
+     * Resolves all configured secrets.
      *
-     * @throws SecretResolveException wenn die Quelle nicht erreichbar ist
-     *         (z.B. kein Internet / kein Cluster). Wichtig: dieser Fehler
-     *         signalisiert "nicht erreichbar" und sorgt dafür, dass eine
-     *         vorhandene Cache-Datei NICHT gelöscht/überschrieben wird.
+     * Throws SecretResolveException when the source is unreachable
+     * (for example no network or no cluster). This signals "unreachable"
+     * and ensures that an existing cache file is not deleted or overwritten.
      */
     Map<String, String> resolve(Logger log)
 
-    /** Lesbarer Name der Quelle für Logs, z.B. "k8s" oder "keyvault". */
+    /** Readable name of the source for logs, for example "k8s" or "keyvault". */
     String sourceName()
 }

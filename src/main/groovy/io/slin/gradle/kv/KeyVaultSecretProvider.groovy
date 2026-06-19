@@ -8,16 +8,16 @@ import io.slin.gradle.provider.SecretResolveException
 import org.gradle.api.logging.Logger
 
 /**
- * Liest Azure Key Vault Secrets über die Azure CLI:
- *   az keyvault secret show --id &lt;vaultUrl&gt;secrets/&lt;name&gt; --query value -o tsv
+ * Reads Azure Key Vault secrets via the Azure CLI:
+ *   az keyvault secret show --id VAULTURL/secrets/NAME --query value -o tsv
  */
 class KeyVaultSecretProvider implements SecretProvider {
 
-    final KvSecretsConfig config
+    final io.slin.gradle.kv.KvSecretsConfig config
     final String separator
     final boolean replaceHyphens
 
-    KeyVaultSecretProvider(KvSecretsConfig config, String separator, boolean replaceHyphens) {
+    KeyVaultSecretProvider(io.slin.gradle.kv.KvSecretsConfig config, String separator, boolean replaceHyphens) {
         this.config = config
         this.separator = separator
         this.replaceHyphens = replaceHyphens
@@ -29,7 +29,7 @@ class KeyVaultSecretProvider implements SecretProvider {
     @Override
     Map<String, String> resolve(Logger log) {
         if (!config.azureKeyVaultUrl) {
-            throw new SecretResolveException("kvSecrets.azureKeyVaultUrl ist nicht gesetzt.")
+            throw new SecretResolveException("kvSecrets.azureKeyVaultUrl is not set.")
         }
         def base = config.azureKeyVaultUrl.endsWith('/') ? config.azureKeyVaultUrl : config.azureKeyVaultUrl + '/'
 
@@ -37,7 +37,7 @@ class KeyVaultSecretProvider implements SecretProvider {
 
         config.secrets.each { spec ->
             def id = "${base}secrets/${spec.name}"
-            log.lifecycle("[slin-secrets] keyvault -> ${spec.name} (type=${spec.type})")
+            log.lifecycle("[slin-secrets] keyvault loading ${spec.name} (type=${spec.type})")
             def cmd = [config.az, 'keyvault', 'secret', 'show', '--id', id.toString(), '--query', 'value', '-o', 'tsv']
             log.info("[slin-secrets]   cmd: ${cmd.join(' ')}")
 
@@ -52,17 +52,17 @@ class KeyVaultSecretProvider implements SecretProvider {
                 def name = SecretNaming.kvString(spec.envName, spec.name)
                 result[name] = value
             } else {
-                // json (default): jeder Key -> eine Variable
+                // json (default): each key becomes one variable
                 def parsed
                 try {
                     parsed = new JsonSlurper().parseText(value)
                 } catch (Exception e) {
                     throw new SecretResolveException(
-                        "Secret '${spec.name}' ist als type=json konfiguriert, enthält aber kein gültiges JSON.", e)
+                        "Secret '${spec.name}' is configured as type json but does not contain valid JSON.", e)
                 }
                 if (!(parsed instanceof Map)) {
                     throw new SecretResolveException(
-                        "Secret '${spec.name}' (type=json) ist kein JSON-Objekt mit key:value-Paaren.")
+                        "Secret '${spec.name}' (type json) is not a JSON object with key value pairs.")
                 }
                 parsed.each { k, v ->
                     def name = SecretNaming.kvJsonKey(k.toString(), separator, replaceHyphens)

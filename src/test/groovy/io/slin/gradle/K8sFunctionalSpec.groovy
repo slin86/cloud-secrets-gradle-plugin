@@ -8,14 +8,14 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /**
- * End-to-end Tests der k8s-Variante mit einem kubectl-Stub (kein echter Cluster).
+ * End to end tests of the k8s variant with a kubectl stub (no real cluster).
  */
 class K8sFunctionalSpec extends Specification {
 
     @TempDir
     Path dir
 
-    /** legt einen kubectl-Stub an, der ein festes Secret-JSON liefert. */
+    /** Creates a kubectl stub that returns a fixed secret JSON. */
     private Path kubectlStub(String json) {
         Path stub = dir.resolve('kubectl-stub.sh')
         Files.writeString(stub, "#!/bin/bash\ncat <<'JSON'\n${json}\nJSON\n")
@@ -23,7 +23,7 @@ class K8sFunctionalSpec extends Specification {
         return stub
     }
 
-    /** kubectl-Stub, der einen Fehler simuliert (Quelle nicht erreichbar). */
+    /** kubectl stub that simulates an error (source unreachable). */
     private Path kubectlFailStub() {
         Path stub = dir.resolve('kubectl-fail.sh')
         Files.writeString(stub, "#!/bin/bash\necho 'Unable to connect to the server' >&2\nexit 1\n")
@@ -43,7 +43,7 @@ class K8sFunctionalSpec extends Specification {
             .withArguments((args as List) + '--stacktrace')
     }
 
-    def "updateSecretsFile schreibt alle data-Keys (default: nur key als Name)"() {
+    def "updateSecretsFile writes all data keys (default: only key as name)"() {
         given:
         def b64 = 'aWNoIGtvbW1lIGF1cyBkZW0gS2V5VmF1bHQ=' // 'ich komme aus dem KeyVault'
         def stub = kubectlStub('{ "data": { "test-name": "' + b64 + '" } }')
@@ -64,13 +64,13 @@ class K8sFunctionalSpec extends Specification {
         def result = runner('updateSecretsFile').build()
 
         then:
-        result.output.contains('geschrieben')
+        result.output.contains('Wrote')
         def f = dir.resolve('build/out/secrets.env').toFile()
         f.exists()
         f.text.contains('test-name=ich komme aus dem KeyVault')
     }
 
-    def "Präfix-Flags erzeugen namespace_secret_key"() {
+    def "prefix flags build namespace_secret_key"() {
         given:
         def stub = kubectlStub('{ "data": { "test-name": "dmFsdWU=" } }') // 'value'
 
@@ -95,12 +95,12 @@ class K8sFunctionalSpec extends Specification {
         dir.resolve('build/out/secrets.env').toFile().text.contains('kuma-v2_test-secret_test-name=value')
     }
 
-    def "syncSecretsFile überspringt frische Datei"() {
+    def "syncSecretsFile skips a fresh file"() {
         given:
         def stub = kubectlStub('{ "data": { "a": "dmFsdWU=" } }')
         def envFile = dir.resolve('build/out/secrets.env')
         Files.createDirectories(envFile.parent)
-        Files.writeString(envFile, "a=existing\n") // frisch (gerade erstellt)
+        Files.writeString(envFile, "a=existing\n") // fresh, just created
 
         writeBuild("""
             plugins { id 'io.slin.secrets' }
@@ -119,17 +119,17 @@ class K8sFunctionalSpec extends Specification {
         def result = runner('syncSecretsFile').build()
 
         then:
-        result.output.contains('Datei frisch')
-        envFile.toFile().text.contains('a=existing') // unverändert
+        result.output.contains('File is fresh')
+        envFile.toFile().text.contains('a=existing') // unchanged
     }
 
-    def "bei Quelle-nicht-erreichbar bleibt die vorhandene Datei erhalten"() {
+    def "when the source is unreachable the existing file is kept"() {
         given:
         def failStub = kubectlFailStub()
         def envFile = dir.resolve('build/out/secrets.env')
         Files.createDirectories(envFile.parent)
         Files.writeString(envFile, "a=cached\n")
-        envFile.toFile().setLastModified(System.currentTimeMillis() - 7_200_000L) // 2h alt -> stale
+        envFile.toFile().setLastModified(System.currentTimeMillis() - 7_200_000L) // 2h old, stale
 
         writeBuild("""
             plugins { id 'io.slin.secrets' }
@@ -148,7 +148,7 @@ class K8sFunctionalSpec extends Specification {
         def result = runner('syncSecretsFile').build()
 
         then:
-        result.output.contains('behalte vorhandene Datei')
-        envFile.toFile().text.contains('a=cached') // NICHT gelöscht/überschrieben
+        result.output.contains('keeping existing file')
+        envFile.toFile().text.contains('a=cached') // not deleted or overwritten
     }
 }

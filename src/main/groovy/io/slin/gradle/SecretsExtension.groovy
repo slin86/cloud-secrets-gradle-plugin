@@ -4,24 +4,23 @@ import io.slin.gradle.k8s.K8sSecretsConfig
 import io.slin.gradle.kv.KvSecretsConfig
 
 /**
- * Top-Level-Konfiguration des Plugins.
+ * Top level configuration of the plugin.
  *
  *   slinSecrets {
- *       // --- gemeinsame Optionen (gelten für k8s UND kv) ---
+ *       // shared options (apply to k8s and kv)
  *       separator = '_'
  *       replaceHyphens = false
  *
- *       // Feature 1: direkt in Task(s) injizieren (env vars).
- *       // Leer = deaktiviert.
+ *       // Feature 1: inject directly into task(s) as env vars. Empty means disabled.
  *       tasks = ['bootRun']
  *
- *       // Feature 2: Cache-Datei verwenden.
+ *       // Feature 2: use a cache file.
  *       useFile = false
  *       targetEnvFile = null          // default: build/slin-secrets/secrets.env
- *       fileFormat = 'env'            // 'env' | 'properties'
- *       maxAge = '1h'                 // 30m, 2h, 1d, 45s ...
+ *       fileFormat = 'env'            // 'env' or 'properties'
+ *       maxAge = '1h'                 // 30m, 2h, 1d, 45s
  *
- *       // --- Quelle (eine reicht, beide möglich) ---
+ *       // source (one is enough, both possible)
  *       k8sSecrets { ... }
  *       kvSecrets  { ... }
  *   }
@@ -31,7 +30,7 @@ class SecretsExtension {
     String separator = '_'
     boolean replaceHyphens = false
 
-    /** Tasks, in die injiziert wird. Leer => Feature inaktiv. */
+    /** Tasks to inject into. Empty means the feature is inactive. */
     List<String> tasks = []
 
     boolean useFile = false

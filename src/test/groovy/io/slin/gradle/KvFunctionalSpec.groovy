@@ -8,10 +8,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /**
- * End-to-end Tests der KeyVault-Variante mit einem az-Stub.
+ * End to end tests of the Key Vault variant with an az stub.
  *
- * Der Stub gibt – unabhängig von den Argumenten – einen festen 'value' aus,
- * so wie 'az keyvault secret show --query value -o tsv' es täte.
+ * The stub prints a fixed value regardless of the arguments, just like
+ * 'az keyvault secret show --query value -o tsv' would.
  */
 class KvFunctionalSpec extends Specification {
 
@@ -20,7 +20,7 @@ class KvFunctionalSpec extends Specification {
 
     private Path azStub(String value) {
         Path stub = dir.resolve('az-stub.sh')
-        // Wert kann mehrzeilig/JSON sein -> per printf roh ausgeben
+        // value can be multi line or JSON, print it raw
         Files.writeString(stub, "#!/bin/bash\ncat <<'VAL'\n${value}\nVAL\n")
         stub.toFile().setExecutable(true)
         return stub
@@ -33,12 +33,12 @@ class KvFunctionalSpec extends Specification {
 
     private GradleRunner runner(String... args) {
         GradleRunner.create()
-            .withProjectDir(dir.toFile())
-            .withPluginClasspath()
-            .withArguments((args as List) + '--stacktrace')
+                .withProjectDir(dir.toFile())
+                .withPluginClasspath()
+                .withArguments((args as List) + '--stacktrace')
     }
 
-    def "type=json expandiert alle Keys zu einzelnen Variablen"() {
+    def "type json expands all keys into separate variables"() {
         given:
         def stub = azStub('{"DB_USER":"appuser","DB_PASS":"s3cr3t"}')
 
@@ -64,7 +64,7 @@ class KvFunctionalSpec extends Specification {
         txt.contains('DB_PASS=s3cr3t')
     }
 
-    def "type=string nutzt envName"() {
+    def "type string uses envName"() {
         given:
         def stub = azStub('plain-string-value')
 
@@ -88,11 +88,11 @@ class KvFunctionalSpec extends Specification {
         dir.resolve('build/out/secrets.env').toFile().text.contains('MY_ENV_NAME=plain-string-value')
     }
 
-    def "Injection (useFile=false) setzt env var an einem Exec-Task"() {
+    def "injection with useFile false sets an env var on an Exec task"() {
         given:
         def stub = azStub('injected-value')
 
-        // Exec-Task gibt die env var aus -> wir prüfen die Ausgabe.
+        // The Exec task prints the env var so we can check the output.
         writeBuild("""
             plugins { id 'io.slin.secrets' }
 

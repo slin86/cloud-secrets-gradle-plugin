@@ -1,19 +1,19 @@
 package io.slin.gradle
 
 /**
- * Baut die Namen der Umgebungsvariablen / Properties.
- * Bewusst seiteneffektfrei und statisch, damit unabhängig testbar.
+ * Builds the names of the environment variables and properties.
+ * Intentionally side effect free and static so it can be tested in isolation.
  */
 class SecretNaming {
 
-    /** Ersetzt optional Bindestriche durch den Separator. */
+    /** Optionally replaces hyphens with the separator. */
     static String applyHyphens(String name, String separator, boolean replaceHyphens) {
         replaceHyphens ? name.replace('-', separator) : name
     }
 
     /**
-     * k8s: Standardmäßig nur der data-Key. Namespace und Secret-Name
-     * können optional als Präfix vorangestellt werden.
+     * k8s: by default only the data key. Namespace and secret name can
+     * optionally be prepended as a prefix.
      */
     static String k8s(String separator, boolean replaceHyphens,
                       boolean includeNamespacePrefix, boolean includeSecretNamePrefix,
@@ -26,8 +26,8 @@ class SecretNaming {
     }
 
     /**
-     * KV type=string: Default ist der Secret-Name in UPPERCASE mit '-' -&gt; '_'.
-     * Mit envName kann ein expliziter Name gesetzt werden.
+     * KV type string: default is the secret name in upper case with '-' to '_'.
+     * An explicit name can be set via envName.
      */
     static String kvString(String envName, String secretName) {
         if (envName) return envName
@@ -35,8 +35,8 @@ class SecretNaming {
     }
 
     /**
-     * KV type=json: jeder JSON-Key wird zu einer Variable. Der Key wird
-     * unverändert übernommen (optional Bindestrich-Ersetzung).
+     * KV type json: every JSON key becomes a variable. The key is taken
+     * as is (with optional hyphen replacement).
      */
     static String kvJsonKey(String key, String separator, boolean replaceHyphens) {
         return applyHyphens(key, separator, replaceHyphens)

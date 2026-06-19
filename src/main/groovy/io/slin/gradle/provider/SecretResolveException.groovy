@@ -1,11 +1,11 @@
 package io.slin.gradle.provider
 
 /**
- * Wird geworfen, wenn eine Secret-Quelle nicht erreichbar ist
- * (kubectl/az nicht startbar, Exit-Code != 0, kein Netz, kein Cluster).
+ * Thrown when a secret source is unreachable
+ * (kubectl or az not startable, exit code not zero, no network, no cluster).
  *
- * Folge: eine bereits existierende Cache-Datei wird beibehalten und nicht
- * überschrieben ("wenn kein Internet vorhanden ist, wird die Datei nie gelöscht").
+ * Consequence: an existing cache file is kept and not overwritten.
+ * "If there is no internet, the file is never deleted."
  */
 class SecretResolveException extends RuntimeException {
     SecretResolveException(String message) {

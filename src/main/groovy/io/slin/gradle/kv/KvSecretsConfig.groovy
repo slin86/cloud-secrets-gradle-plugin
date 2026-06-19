@@ -1,11 +1,11 @@
 package io.slin.gradle.kv
 
 /**
- * Konfigurations-Paket der KeyVault-Variante.
+ * Configuration package of the Key Vault variant.
  *
  *   kvSecrets {
  *       azureKeyVaultUrl = 'https://my-vault.vault.azure.net/'
- *       az = 'az'                       // optional, Pfad zur Azure CLI
+ *       az = 'az'                       // optional, path to the Azure CLI
  *
  *       secret {
  *           name = 'my-app-config'      // default: rootProject.name
@@ -18,24 +18,24 @@ package io.slin.gradle.kv
  *       }
  *   }
  *
- * Liest über die Azure CLI ('az keyvault secret show'), nutzt also den
- * lokalen 'az login'. Kein SDK, keine zusätzlichen Abhängigkeiten.
+ * Reads via the Azure CLI ('az keyvault secret show'), so it uses the local
+ * 'az login'. No SDK, no extra dependencies.
  */
 class KvSecretsConfig {
 
     String az = 'az'
     String azureKeyVaultUrl
 
-    final List<KvSecretSpec> secrets = []
+    final List<io.slin.gradle.kv.KvSecretSpec> secrets = []
 
     void secret(Closure closure) {
-        def spec = new KvSecretSpec()
+        def spec = new io.slin.gradle.kv.KvSecretSpec()
         closure.delegate = spec
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure.call()
         if (spec.type && !(spec.type in ['json', 'string'])) {
             throw new IllegalArgumentException(
-                "kvSecrets.secret: type muss 'json' oder 'string' sein (war: ${spec.type})")
+                "kvSecrets.secret: type must be 'json' or 'string' (was: ${spec.type})")
         }
         secrets << spec
     }

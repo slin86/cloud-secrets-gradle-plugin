@@ -14,16 +14,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Build & Test
+      - name: Build and test
         run: ./gradlew build --stacktrace
 
-# Veröffentlichung via JitPack:
-#   JitPack baut automatisch bei einem Git-Tag – es ist KEINE Action nötig.
+# Publishing via JitPack:
+#   JitPack builds automatically on a git tag, no action is needed.
 #     git tag 1.0.0
 #     git push origin 1.0.0
-#   Danach Build-Status auf https://jitpack.io/#slin86/k8s-secrets-gradle-plugin
+#   Build status: https://jitpack.io/#slin86/k8s-secrets-gradle-plugin
 #
-# Optional: Veröffentlichung ins Gradle Plugin Portal (auskommentiert)
+# Optional: publishing to the Gradle Plugin Portal (commented out)
 #
 #  publish-portal:
 #    needs: build

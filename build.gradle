@@ -1,12 +1,12 @@
 plugins {
     id 'groovy'
     id 'java-gradle-plugin'
-    id 'maven-publish'                      // für JitPack (publishToMavenLocal) & GitHub Packages
-    // id 'com.gradle.plugin-publish' version '1.3.1'   // <-- für das Gradle Plugin Portal aktivieren
+    id 'maven-publish'                      // for JitPack (publishToMavenLocal) and GitHub Packages
+    // id 'com.gradle.plugin-publish' version '1.3.1'   // enable for the Gradle Plugin Portal
 }
 
 group = 'io.slin.gradle'
-version = '1.0.0'
+version = '1.1.0'
 
 java {
     toolchain {
@@ -27,14 +27,14 @@ dependencies {
 }
 
 gradlePlugin {
-    // Für das Plugin Portal benötigt (schadet sonst nicht):
+    // Required for the Plugin Portal (harmless otherwise):
     // website = 'https://github.com/slin86/k8s-secrets-gradle-plugin'
     // vcsUrl  = 'https://github.com/slin86/k8s-secrets-gradle-plugin'
     plugins {
         slinSecrets {
             id = 'io.slin.secrets'
             displayName = 'slin Secrets Loader'
-            description = 'Lädt Kubernetes- und Azure-Key-Vault-Secrets lokal als Umgebungsvariablen / Cache-Datei.'
+            description = 'Loads Kubernetes and Azure Key Vault secrets locally as environment variables or a cache file.'
             implementationClass = 'io.slin.gradle.SecretsPlugin'
             // tags.set(['kubernetes', 'azure', 'keyvault', 'secrets', 'spring-boot'])  // Plugin Portal
         }
@@ -50,15 +50,15 @@ tasks.named('test') {
 // ============================================================
 //
 // JitPack:
-//   Kein Publish-Schritt nötig. JitPack baut das Repo bei einem Git-Tag selbst
-//   (führt 'publishToMavenLocal' aus) und serviert es anonym lesbar.
+//   No publish step needed. JitPack builds the repo on a git tag
+//   (it runs publishToMavenLocal) and serves it for anonymous reads.
 //     git tag 1.0.0 && git push origin 1.0.0
-//   Konsument: maven { url 'https://jitpack.io' } + resolutionStrategy (siehe README).
+//   Consumer: maven { url 'https://jitpack.io' } plus resolutionStrategy (see README).
 //
-// GitHub Packages (optional, benötigt PAT mit read:packages beim Konsumenten):
+// GitHub Packages (optional, requires a PAT with read:packages on the consumer side):
 publishing {
     repositories {
-        // mavenLocal() wird von 'publishToMavenLocal' automatisch genutzt.
+        // mavenLocal() is used automatically by publishToMavenLocal.
         maven {
             name = 'GitHubPackages'
             url = uri('https://maven.pkg.github.com/slin86/k8s-secrets-gradle-plugin')
@@ -71,12 +71,12 @@ publishing {
 }
 
 // ============================================================
-// Gradle Plugin Portal (auskommentiert)
+// Gradle Plugin Portal (commented out)
 // ============================================================
-// 1. plugin 'com.gradle.plugin-publish' oben aktivieren
-// 2. website/vcsUrl/tags im gradlePlugin-Block aktivieren
-// 3. API-Key/Secret in ~/.gradle/gradle.properties:
+// 1. enable the 'com.gradle.plugin-publish' plugin above
+// 2. enable website, vcsUrl and tags in the gradlePlugin block
+// 3. put the API key and secret in ~/.gradle/gradle.properties:
 //      gradle.publish.key=...
 //      gradle.publish.secret=...
-// 4. Veröffentlichen:
+// 4. publish:
 //      ./gradlew publishPlugins
