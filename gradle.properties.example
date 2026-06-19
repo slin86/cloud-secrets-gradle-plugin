@@ -1,7 +1,0 @@
-# Vorlage – kopieren nach ~/.gradle/gradle.properties oder gradle.properties.local
-# (Letzteres ist in .gitignore und wird nicht committet)
-
-# Ziel-Repository fürs Publishing (z.B. Azure Artifacts Feed)
-internalRepoUrl=https://pkgs.dev.azure.com/<org>/<project>/_packaging/<feed>/maven/v1
-internalRepoUser=<azure-artifacts-user>
-internalRepoToken=<personal-access-token>

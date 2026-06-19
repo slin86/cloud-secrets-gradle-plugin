@@ -40,29 +40,15 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-// ============================================================
-// Publishing
-// ============================================================
-// 'java-gradle-plugin':
-//   - das Plugin-JAR              (slin.gradle:k8s-secrets-gradle-plugin)
-//   - den Plugin-Marker           (slin.k8s-secrets:slin.k8s-secrets.gradle.plugin)
-// maven-publish published beide.
-//publishing {
-//    repositories {
-//        // Beispiel: internes Azure Artifacts Feed.
-//        // URL und Credentials anpassen bzw. über gradle.properties / Env setzen.
-//        maven {
-//            name = 'internal'
-//            url = uri(
-//                project.findProperty('internalRepoUrl')
-//                    ?: 'https://pkgs.dev.azure.com/<org>/<project>/_packaging/<feed>/maven/v1'
-//            )
-//            credentials {
-//                username = project.findProperty('internalRepoUser') ?: System.getenv('AZURE_ARTIFACTS_USER')
-//                password = project.findProperty('internalRepoToken') ?: System.getenv('AZURE_ARTIFACTS_TOKEN')
-//            }
-//        }
-//        // Zum lokalen Testen:
-//        mavenLocal()
-//    }
-//}
+publishing {
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            url = uri('https://maven.pkg.github.com/slin86/k8s-secrets-gradle-plugin')
+            credentials {
+                username = providers.gradleProperty('gpr.user').orNull ?: System.getenv('GITHUB_ACTOR')
+                password = providers.gradleProperty('gpr.token').orNull ?: System.getenv('GITHUB_TOKEN')
+            }
+        }
+    }
+}
