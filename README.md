@@ -15,7 +15,7 @@ Coordinates: io.slin.gradle:cloud-secrets-gradle-plugin:1.0.0
 ```gradle
 plugins {
     id 'org.springframework.boot' version '4.1.0'
-    id 'io.slin.secrets' version '1.1.0'
+    id 'io.slin.secrets' version '1.0.0'
 }
 
 slinSecrets {
@@ -92,6 +92,41 @@ of from freshly loaded secrets.
 ```bash
 ./gradlew updateSecretsFile   # forces reload and write
 ./gradlew syncSecretsFile     # loads only when missing or too old
+```
+
+## When are the secrets fetched
+
+Nothing is hooked into 'gradle build' by default. The only automatic trigger is
+that tasks listed in 'tasks' depend on syncSecretsFile (only when useFile is true).
+Plain 'gradle build' does not fetch anything unless you wire it up yourself.
+
+### let the application read the file (build stays clean)
+
+Use fileFormat 'properties' and let Spring Boot import the file directly. The
+build then runs without kubectl or az, and you refresh the file on demand with
+./gradlew updateSecretsFile.
+
+```yaml
+# application.yaml
+spring:
+  config:
+    import: "optional:file:./build/slin-secrets/secrets.properties"
+```
+
+The 'optional:' prefix lets the app start even when the file is not present yet.
+In a pod or production the file simply does not exist and the secrets come from
+real volume mounts as usual, so this import line does no harm. Note that Spring
+imports only .properties and .yaml natively, not .env, so use fileFormat 'properties'
+for this path.
+
+### run syncSecretsFile before build (explicit opt in)
+
+In the consumer build.gradle:
+
+```gradle
+tasks.named('build') {
+    dependsOn 'syncSecretsFile'   // respects maxAge; use 'updateSecretsFile' to always refresh
+}
 ```
 
 ## Using in code
