@@ -15,10 +15,10 @@ Coordinates: io.slin.gradle:cloud-secrets-gradle-plugin:1.0.0
 ```gradle
 plugins {
     id 'org.springframework.boot' version '4.1.0'
-    id 'io.slin.secrets' version '1.0.0'
+    id 'io.slin.secrets' version '1.1.2'
 }
 
-slinSecrets {
+secretsLoader {
     // shared options (apply to k8s and kv)
     separator = '_'
     replaceHyphens = false
