@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'io.slin.gradle'
-version = '1.0.0'
+version = '1.1.2'
 
 java {
     toolchain {
@@ -52,7 +52,7 @@ tasks.named('test') {
 // JitPack:
 //   No publish step needed. JitPack builds the repo on a git tag
 //   (it runs publishToMavenLocal) and serves it for anonymous reads.
-//     git tag 1.0.0 && git push origin 1.0.0
+//     git tag 1.1.2 && git push origin 1.1.2
 //   Consumer: maven { url 'https://jitpack.io' } plus resolutionStrategy (see README).
 //
 // GitHub Packages (optional, requires a PAT with read:packages on the consumer side):
