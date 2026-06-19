@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build & Test
+        run: ./gradlew build --stacktrace
+
+# Veröffentlichung via JitPack:
+#   JitPack baut automatisch bei einem Git-Tag – es ist KEINE Action nötig.
+#     git tag 1.0.0
+#     git push origin 1.0.0
+#   Danach Build-Status auf https://jitpack.io/#slin86/k8s-secrets-gradle-plugin
+#
+# Optional: Veröffentlichung ins Gradle Plugin Portal (auskommentiert)
+#
+#  publish-portal:
+#    needs: build
+#    if: startsWith(github.ref, 'refs/tags/')
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-java@v4
+#        with:
+#          distribution: temurin
+#          java-version: '21'
+#      - run: ./gradlew publishPlugins
+#        env:
+#          GRADLE_PUBLISH_KEY:    ${{ secrets.GRADLE_PUBLISH_KEY }}
+#          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}

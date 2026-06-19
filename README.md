@@ -1,100 +1,162 @@
-# k8s-secrets Gradle Plugin
+# slin-secrets Gradle Plugin
 
-Standalone Gradle plugin. Loads any number of Kubernetes secrets during local `bootRun` via the local kubeconfig (kubectl) and provides each contained `data` key as a system property.
+Lädt Secrets aus **Kubernetes** und/oder **Azure Key Vault** lokal auf den
+Entwicklerrechner und stellt sie als Umgebungsvariablen bereit – entweder direkt
+an Tasks (z.B. `bootRun`) oder über eine gecachte env/properties-Datei.
 
-**Property Name:** `namespace<SEP>secretName<SEP>key` → e.g. `aname_test-secret_test-name`
+Kein Pod, kein Deployment. Beide Quellen bieten **identische Features**, nur der
+Ursprung der Secrets unterscheidet sich.
 
-No pod, no deployment – runs entirely on the developer machine.
+- Plugin-ID: `io.slin.secrets`
+- Koordinaten: `io.slin.gradle:k8s-secrets-gradle-plugin:1.0.0`
 
-- Plugin ID: `slin.k8s-secrets`
-- Coordinates: `slin.gradle:k8s-secrets-gradle-plugin:1.0.0`
-
-## Build & Test
-
-```bash
-gradle wrapper --gradle-version 8.14 
-./gradlew build
-./gradlew test
-```
-
-## Using in the Consumer Project
-
-### 1. Register Plugin Repository (`settings.gradle`)
-
-```gradle
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        mavenLocal()                         // if testing via publishToMavenLocal
-    }
-}
-```
-
-### 2. Apply & Configure Plugin (`build.gradle`)
+## Konfiguration
 
 ```gradle
 plugins {
     id 'org.springframework.boot' version '4.1.0'
-    id 'slin.k8s-secrets' version '1.0.0'
+    id 'io.slin.secrets' version '1.0.0'
 }
 
-k8sSecrets {
-    // kubectl = 'kubectl'      // optional
-    // separator = '_'          // optional
-    // replaceHyphens = false   // optional
+slinSecrets {
+    // ---- gemeinsame Optionen (gelten für k8s UND kv) ----
+    separator = '_'
+    replaceHyphens = false
 
-    secret {
-        namespace = 'aname'
-        name = 'test-secret'
+    // Feature 1: direkt in Task(s) injizieren. Leer = aus.
+    tasks = ['bootRun']
+
+    // Feature 2: Cache-Datei verwenden
+    useFile = false
+    targetEnvFile = null          // default: build/slin-secrets/secrets.env
+    fileFormat = 'env'            // 'env' | 'properties'
+    maxAge = '1h'                 // 30m, 2h, 1d, 45s ...
+
+    // ---- Quelle: eine reicht, beide möglich ----
+    k8sSecrets {
+        // kubectl = 'kubectl'
+        includeNamespacePrefix = false   // Namespace als Präfix
+        includeSecretNamePrefix = false  // Secret-Name als Präfix
+
+        secret { namespace = 'kuma-v2'; name = 'test-secret' }
     }
-    secret {
-        namespace = 'aname'
-        name = 'andere-secrets'
+
+    kvSecrets {
+        azureKeyVaultUrl = 'https://my-vault.vault.azure.net/'
+        // az = 'az'
+
+        secret { name = 'app-config' }                              // type=json (default)
+        secret { name = 'token'; type = 'string'; envName = 'API_TOKEN' }
     }
 }
 ```
 
-All `data` keys from each secret are loaded automatically – you don't need to specify individual keys.
+### Variablennamen
 
-### 3. Use in Code
+**k8s** – Default ist nur der data-Key. Präfixe optional:
+
+| Flags | Beispielname |
+|-------|--------------|
+| (default) | `test-name` |
+| `includeNamespacePrefix` | `kuma-v2_test-name` |
+| `includeSecretNamePrefix` | `test-secret_test-name` |
+| beide | `kuma-v2_test-secret_test-name` |
+
+**kv** –
+- `type = 'json'` (default): Secret-Wert ist ein JSON-Objekt; jeder Key wird zu
+  einer eigenen Variable. Default-Secret ist `rootProject.name`.
+- `type = 'string'`: eine Variable, Name = Secret-Name in UPPERCASE
+  (z.B. `another-secret` → `ANOTHER_SECRET`) oder explizit via `envName`.
+
+## Die zwei Features (für beide Quellen identisch)
+
+### Feature 1 – Injection in Tasks
+`tasks = ['bootRun']` hängt die Secrets als Umgebungsvariablen an die genannten
+Tasks (unterstützt JavaExec/Exec). Leer = nichts passiert.
+
+### Feature 2 – Cache-Datei mit max-age
+`useFile = true` schreibt die Secrets in eine Datei. Ablauf (im Build verankert
+über den `syncSecretsFile`-Task, von dem konfigurierte Tasks abhängen):
+
+```
+Datei fehlt           -> laden & schreiben
+Datei älter als maxAge -> laden & schreiben
+Datei frisch          -> nichts tun
+Quelle nicht erreichbar (kein Netz/Cluster) -> vorhandene Datei BEHALTEN
+```
+
+Bei `useFile = true` werden in `tasks` genannte Tasks aus der **Datei** befüllt
+(statt aus frisch geladenen Secrets).
+
+### Manueller Task
+```bash
+./gradlew updateSecretsFile   # erzwingt Neuladen & Schreiben
+./gradlew syncSecretsFile     # lädt nur, wenn fehlend/zu alt
+```
+
+## Verwenden im Code
 
 ```yaml
-# application.yaml
-keyvaultsecrettest: ${aname_test-secret_test-name:not found}
+# application.yaml (k8s default-Name)
+keyvaultsecrettest: ${test-name:not found}
 ```
 
 ```java
-@Value("${aname_test-secret_test-name}")
-private String secretValue;
+@Value("${API_TOKEN}")
+private String token;
 ```
 
-### 4. Start
+## Build & Test
 
 ```bash
-./gradlew bootRun
+gradle wrapper --gradle-version 8.14
+./gradlew build test
 ```
 
+## Veröffentlichen
+
+### Lokal testen
+```bash
+./gradlew publishToMavenLocal
 ```
-========== [k8s-secrets] Loading 1 Secret(s) ==========
-[k8s-secrets] -> aname/test-secret
-[k8s-secrets]    aname_test-secret_test-name = i***(26 chars)
-[k8s-secrets] Done: 1 property(s) set from 1 secret(s).
+Konsument: `mavenLocal()` in `pluginManagement.repositories` der `settings.gradle`.
+
+### JitPack (anonym lesbar, kein Token)
+Nur taggen – JitPack baut selbst:
+```bash
+git tag 1.0.0
+git push origin 1.0.0
 ```
+Im Konsumenten-Projekt (`settings.gradle`):
+```gradle
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = uri('https://jitpack.io') }
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == 'io.slin.secrets') {
+                useModule("com.github.slin86:k8s-secrets-gradle-plugin:${requested.version}")
+            }
+        }
+    }
+}
+```
+Build-Status: https://jitpack.io/#slin86/k8s-secrets-gradle-plugin
 
-## How It Works
+### Gradle Plugin Portal (optional)
+In `build.gradle` das `com.gradle.plugin-publish`-Plugin + `website`/`vcsUrl`/`tags`
+aktivieren, API-Key in `~/.gradle/gradle.properties` legen, dann `./gradlew publishPlugins`.
 
-1. `bootRun.doFirst` runs **before** the JVM fork
-2. Plugin calls `kubectl get secret <name> -n <namespace> -o json`
-3. Streams are cleanly consumed via `consumeProcessOutput` (prevents "Stream closed" errors)
-4. Each base64 value in `.data` is decoded
-5. `bootRun.systemProperty(name, value)` sets the property in the **forked** bootRun JVM
-   (not in the Gradle JVM – this was the original pitfall)
+## Wie es funktioniert
 
-## Notes
+1. Beide Provider (kubectl / az CLI) liefern eine gemeinsame Map `name → value`.
+2. Externe Kommandos werden über `consumeProcessOutput` gelesen (kein "Stream closed").
+3. Task-Injection setzt die Werte als Umgebungsvariablen (`doFirst`, vor JVM-Fork).
+4. File-Caching schreibt env/properties und respektiert `maxAge`.
 
-- Values are masked in the log (first character + length only)
-- Hyphens in property names work fine with Spring `@Value` literal lookup.
-  If issues arise: `replaceHyphens = true`.
-- If kubectl is missing or the secret doesn't exist, it's logged and skipped – the build doesn't fail.
-- Uses the active kubeconfig/active context. Before starting, you may need to
-  `kubectl config use-context <ctx>`.
+## Hinweise
+- Werte werden in Logs maskiert (erstes Zeichen + Länge).
+- KV nutzt die lokale Azure CLI (`az login`), k8s die aktive kubeconfig.
+- `gradle.properties.local` ist in `.gitignore` – Credentials dort ablegen.
