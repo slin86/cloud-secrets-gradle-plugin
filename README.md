@@ -1,34 +1,15 @@
 # k8s-secrets Gradle Plugin
 
-Standalone Gradle-Plugin. Lädt beim lokalen `bootRun` beliebig viele Kubernetes
-Secrets über die lokale kubeconfig (kubectl) und stellt jeden enthaltenen
-`data`-Key als System Property bereit.
+Standalone Gradle plugin. Loads any number of Kubernetes secrets during local `bootRun` via the local kubeconfig (kubectl) and provides each contained `data` key as a system property.
 
-**Property-Name:** `namespace<SEP>secretName<SEP>key` → z.B. `aname_test-secret_test-name`
+**Property Name:** `namespace<SEP>secretName<SEP>key` → e.g. `aname_test-secret_test-name`
 
-Kein Pod, kein Deployment – läuft komplett auf dem Entwicklerrechner.
+No pod, no deployment – runs entirely on the developer machine.
 
-- Plugin-ID: `slin.k8s-secrets`
-- Koordinaten: `slin.gradle:k8s-secrets-gradle-plugin:1.0.0`
+- Plugin ID: `slin.k8s-secrets`
+- Coordinates: `slin.gradle:k8s-secrets-gradle-plugin:1.0.0`
 
-## Repo-Struktur
-
-```
-k8s-secrets-gradle-plugin/
-├── settings.gradle
-├── build.gradle
-├── gradle.properties.example
-├── .gitignore
-└── src/
-    ├── main/groovy/slin/gradle/
-    │   ├── K8sSecretsPlugin.groovy      # Logik: kubectl lesen, decoden, systemProperty setzen
-    │   ├── K8sSecretsExtension.groovy   # DSL-Konfiguration
-    │   └── SecretSpec.groovy            # ein einzelnes Secret
-    └── test/groovy/slin/gradle/
-        └── K8sSecretsPluginFunctionalTest.groovy
-```
-
-## Bauen & Testen
+## Build & Test
 
 ```bash
 gradle wrapper --gradle-version 8.14 
@@ -36,56 +17,20 @@ gradle wrapper --gradle-version 8.14
 ./gradlew test
 ```
 
-## Veröffentlichen
+## Using in the Consumer Project
 
-### Lokal (zum Ausprobieren)
-
-```bash
-./gradlew publishToMavenLocal
-```
-
-### Ins interne Repo (z.B. Azure Artifacts)
-
-Credentials in `~/.gradle/gradle.properties` (siehe `gradle.properties.example`):
-
-```properties
-internalRepoUrl=https://pkgs.dev.azure.com/<org>/<project>/_packaging/<feed>/maven/v1
-internalRepoUser=<user>
-internalRepoToken=<pat>
-```
-
-Dann:
-
-```bash
-./gradlew publishAllPublicationsToInternalRepository
-```
-
-Dabei werden zwei Artefakte publiziert:
-- das Plugin-JAR `slin.gradle:k8s-secrets-gradle-plugin`
-- der Plugin-Marker `slin.k8s-secrets:slin.k8s-secrets.gradle.plugin`
-  (den braucht der `plugins {}`-Block zur Auflösung)
-
-## Im Konsumenten-Projekt verwenden
-
-### 1. Plugin-Repository bekannt machen (`settings.gradle`)
+### 1. Register Plugin Repository (`settings.gradle`)
 
 ```gradle
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        mavenLocal()                         // falls per publishToMavenLocal getestet
-        maven {
-            url = uri('https://pkgs.dev.azure.com/<org>/<project>/_packaging/<feed>/maven/v1')
-            credentials {
-                username = providers.gradleProperty('internalRepoUser').orNull
-                password = providers.gradleProperty('internalRepoToken').orNull
-            }
-        }
+        mavenLocal()                         // if testing via publishToMavenLocal
     }
 }
 ```
 
-### 2. Plugin anwenden & konfigurieren (`build.gradle`)
+### 2. Apply & Configure Plugin (`build.gradle`)
 
 ```gradle
 plugins {
@@ -109,22 +54,21 @@ k8sSecrets {
 }
 ```
 
-Alle `data`-Keys jedes Secrets werden automatisch geladen – einzelne Keys
-musst du nicht angeben.
+All `data` keys from each secret are loaded automatically – you don't need to specify individual keys.
 
-### 3. Im Code nutzen
+### 3. Use in Code
 
 ```yaml
 # application.yaml
-keyvaultsecrettest: ${aname_test-secret_test-name:nicht gefunden}
+keyvaultsecrettest: ${aname_test-secret_test-name:not found}
 ```
 
 ```java
-@Value("${keyvaultsecrettest}")
+@Value("${aname_test-secret_test-name}")
 private String secretValue;
 ```
 
-### 4. Starten
+### 4. Start
 
 ```bash
 ./gradlew bootRun
@@ -134,24 +78,23 @@ private String secretValue;
 ========== [k8s-secrets] Loading 1 Secret(s) ==========
 [k8s-secrets] -> aname/test-secret
 [k8s-secrets]    aname_test-secret_test-name = i***(26 chars)
-[k8s-secrets] Fertig: 1 Property(s) aus 1 Secret(s) gesetzt.
+[k8s-secrets] Done: 1 property(s) set from 1 secret(s).
 ```
 
-## Wie es funktioniert
+## How It Works
 
-1. `bootRun.doFirst` läuft **vor** dem JVM-Fork
-2. Plugin ruft `kubectl get secret <name> -n <namespace> -o json` auf
-3. Streams werden über `consumeProcessOutput` sauber abgegriffen (vermeidet "Stream closed")
-4. Jeder base64-Wert in `.data` wird dekodiert
-5. `bootRun.systemProperty(name, value)` setzt die Property im **geforkten** bootRun-JVM
-   (nicht in der Gradle-JVM – das war der ursprüngliche Stolperstein)
+1. `bootRun.doFirst` runs **before** the JVM fork
+2. Plugin calls `kubectl get secret <name> -n <namespace> -o json`
+3. Streams are cleanly consumed via `consumeProcessOutput` (prevents "Stream closed" errors)
+4. Each base64 value in `.data` is decoded
+5. `bootRun.systemProperty(name, value)` sets the property in the **forked** bootRun JVM
+   (not in the Gradle JVM – this was the original pitfall)
 
-## Hinweise
+## Notes
 
-- Werte werden im Log maskiert (nur erstes Zeichen + Länge)
-- Bindestriche im Property-Namen sind für Spring `@Value` mit literalem Lookup ok.
-  Falls es zickt: `replaceHyphens = true`.
-- Fehlt kubectl oder das Secret, wird geloggt und übersprungen – der Build bricht nicht ab.
-- Nutzt die aktive kubeconfig/den aktiven Context. Vor dem Start ggf.
-  `kubectl config use-context <ctx>` setzen.
-```
+- Values are masked in the log (first character + length only)
+- Hyphens in property names work fine with Spring `@Value` literal lookup.
+  If issues arise: `replaceHyphens = true`.
+- If kubectl is missing or the secret doesn't exist, it's logged and skipped – the build doesn't fail.
+- Uses the active kubeconfig/active context. Before starting, you may need to
+  `kubectl config use-context <ctx>`.

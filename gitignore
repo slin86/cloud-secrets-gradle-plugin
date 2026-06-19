@@ -8,6 +8,6 @@ build/
 .vscode/
 .DS_Store
 
-# Lokale Credentials niemals committen
+# never commit local credentials
 gradle.properties.local
 secrets.properties

@@ -1,9 +1,9 @@
 package slin.gradle
 
 /**
- * Konfigurations-DSL für das k8s-secrets Plugin.
+ * Configurations-DSL for k8s-secrets plugin.
  *
- * Beispiel in build.gradle:
+ * Example in build.gradle:
  *
  *   k8sSecrets {
  *       kubectl = 'kubectl'        // optional, default 'kubectl'
@@ -22,19 +22,18 @@ package slin.gradle
  */
 class K8sSecretsExtension {
 
-    /** Pfad/Name des kubectl-Binaries. */
+    /** Path/Name of kubectl-Binaries. */
     String kubectl = 'kubectl'
 
-    /** Trennzeichen für den Property-Namen: namespace SEP name SEP key */
+    /** Separator for Property-Names: namespace SEP name SEP key */
     String separator = '_'
 
     /**
-     * Wenn true, werden Bindestriche in namespace/name/key durch das
-     * Trennzeichen ersetzt (praktisch, falls Spring @Value mit Bindestrichen zickt).
+     * If true, hyphens in namespace/name/key will be replaced by the configured separator.
      */
     boolean replaceHyphens = false
 
-    /** Alle konfigurierten Secrets. */
+    /** configured secrets. */
     final List<SecretSpec> secrets = []
 
     /** DSL-Methode: secret { namespace = ...; name = ... } */
@@ -46,7 +45,7 @@ class K8sSecretsExtension {
 
         if (!spec.namespace || !spec.name) {
             throw new IllegalArgumentException(
-                "k8sSecrets.secret benötigt 'namespace' und 'name' (war: ${spec})")
+                "k8sSecrets.secret needs 'namespace' and 'name' (war: ${spec})")
         }
         secrets << spec
     }

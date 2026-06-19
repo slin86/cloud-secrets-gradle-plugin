@@ -6,9 +6,8 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 
 /**
- * Lädt vor dem Start von 'bootRun' beliebig viele Kubernetes Secrets über
- * die lokale kubeconfig (kubectl) und stellt jeden enthaltenen data-Key als
- * System Property bereit.
+ * Loads before 'bootRun' Kubernetes Secrets for local configured kubeconfig (kubectl) and provides each contained
+ * data key as a System Property.
  *
  * Property-Name: namespace SEPARATOR secretName SEPARATOR key
  * z.B. aname_test-secret_test-name
@@ -22,11 +21,10 @@ class K8sSecretsPlugin implements Plugin<Project> {
         project.afterEvaluate {
             def bootRun = project.tasks.findByName('bootRun')
             if (!(bootRun instanceof JavaExec)) {
-                project.logger.warn("[k8s-secrets] Kein 'bootRun' (JavaExec) Task gefunden – Plugin macht nichts.")
+                project.logger.warn("[k8s-secrets] No 'bootRun' (JavaExec) Task found.")
                 return
             }
 
-            // doFirst läuft VOR dem JVM-Fork von bootRun -> systemProperty greift im richtigen Prozess.
             bootRun.doFirst { task ->
                 loadAll(project, ext, task as JavaExec)
             }
@@ -39,7 +37,7 @@ class K8sSecretsPlugin implements Plugin<Project> {
         log.lifecycle("========== [k8s-secrets] Loading ${ext.secrets.size()} Secret(s) ==========")
 
         if (ext.secrets.isEmpty()) {
-            log.lifecycle("[k8s-secrets] Keine Secrets konfiguriert.")
+            log.lifecycle("[k8s-secrets] no Secrets configured.")
             return
         }
 
@@ -48,7 +46,7 @@ class K8sSecretsPlugin implements Plugin<Project> {
             totalKeys += loadOne(ext, bootRun, spec, log)
         }
 
-        log.lifecycle("[k8s-secrets] Fertig: ${totalKeys} Property(s) aus ${ext.secrets.size()} Secret(s) gesetzt.")
+        log.lifecycle("[k8s-secrets] Done: ${totalKeys} Property(s) ${ext.secrets.size()} Secret(s) are set.")
         log.lifecycle("===============================================================")
         log.lifecycle("")
     }
@@ -66,7 +64,7 @@ class K8sSecretsPlugin implements Plugin<Project> {
         try {
             process = cmd.execute()
         } catch (IOException e) {
-            log.error("[k8s-secrets]    kubectl konnte nicht gestartet werden: ${e.message}")
+            log.error("[k8s-secrets]    kubectl could not be started: ${e.message}")
             return 0
         }
         process.consumeProcessOutput(stdout, stderr)
@@ -80,7 +78,7 @@ class K8sSecretsPlugin implements Plugin<Project> {
         def json = new JsonSlurper().parseText(stdout.toString())
         def data = json?.data
         if (!data) {
-            log.warn("[k8s-secrets]    Secret hat keine 'data' Einträge – übersprungen.")
+            log.warn("[k8s-secrets]    Secret has no 'data' entries – secret ignored.")
             return 0
         }
 
@@ -104,7 +102,6 @@ class K8sSecretsPlugin implements Plugin<Project> {
         return name
     }
 
-    /** Wert im Log maskieren – nur Länge & erstes Zeichen zeigen. */
     private String mask(String value) {
         if (value == null) return 'null'
         if (value.length() <= 2) return '***'

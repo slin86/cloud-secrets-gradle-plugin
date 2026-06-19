@@ -1,14 +1,14 @@
 package slin.gradle
 
 /**
- * Beschreibt ein einzelnes Kubernetes Secret, das geladen werden soll.
+ * Describes a single kubernetes secret.
  */
 class SecretSpec {
 
     /** Kubernetes Namespace, z.B. "aname" */
     String namespace
 
-    /** Name des Secrets, z.B. "test-secret" */
+    /** Name of secrets, z.B. "test-secret" */
     String name
 
     @Override
