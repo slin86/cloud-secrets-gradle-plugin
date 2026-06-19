@@ -44,7 +44,7 @@ class KvFunctionalSpec extends Specification {
 
         writeBuild("""
             plugins { id 'io.slin.secrets' }
-            slinSecrets {
+            secretsLoader {
                 useFile = true
                 targetEnvFile = "build/out/secrets.env"
                 kvSecrets {
@@ -70,7 +70,7 @@ class KvFunctionalSpec extends Specification {
 
         writeBuild("""
             plugins { id 'io.slin.secrets' }
-            slinSecrets {
+            secretsLoader {
                 useFile = true
                 targetEnvFile = "build/out/secrets.env"
                 kvSecrets {
@@ -100,7 +100,7 @@ class KvFunctionalSpec extends Specification {
                 commandLine 'bash', '-c', 'echo GOT=\$MY_ENV_NAME'
             }
 
-            slinSecrets {
+            secretsLoader {
                 useFile = false
                 tasks = ['printIt']
                 kvSecrets {

@@ -6,7 +6,7 @@ import io.slin.gradle.kv.KvSecretsConfig
 /**
  * Top level configuration of the plugin.
  *
- *   slinSecrets {
+ *   secretsLoader {
  *       // shared options (apply to k8s and kv)
  *       separator = '_'
  *       replaceHyphens = false

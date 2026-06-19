@@ -18,7 +18,7 @@ class SecretsPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        def ext = project.extensions.create('slinSecrets', io.slin.gradle.SecretsExtension)
+        def ext = project.extensions.create('secretsLoader', io.slin.gradle.SecretsExtension)
 
         // Register tasks lazily so they exist independently of afterEvaluate.
         def syncTask = project.tasks.register('syncSecretsFile') {

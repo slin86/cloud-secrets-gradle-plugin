@@ -31,7 +31,7 @@ gradlePlugin {
     // website = 'https://github.com/slin86/k8s-secrets-gradle-plugin'
     // vcsUrl  = 'https://github.com/slin86/k8s-secrets-gradle-plugin'
     plugins {
-        slinSecrets {
+        secretsLoader {
             id = 'io.slin.secrets'
             displayName = 'slin Secrets Loader'
             description = 'Loads Kubernetes and Azure Key Vault secrets locally as environment variables or a cache file.'

@@ -50,7 +50,7 @@ class K8sFunctionalSpec extends Specification {
 
         writeBuild("""
             plugins { id 'io.slin.secrets' }
-            slinSecrets {
+            secretsLoader {
                 useFile = true
                 targetEnvFile = "build/out/secrets.env"
                 k8sSecrets {
@@ -76,7 +76,7 @@ class K8sFunctionalSpec extends Specification {
 
         writeBuild("""
             plugins { id 'io.slin.secrets' }
-            slinSecrets {
+            secretsLoader {
                 useFile = true
                 targetEnvFile = "build/out/secrets.env"
                 k8sSecrets {
@@ -104,7 +104,7 @@ class K8sFunctionalSpec extends Specification {
 
         writeBuild("""
             plugins { id 'io.slin.secrets' }
-            slinSecrets {
+            secretsLoader {
                 useFile = true
                 targetEnvFile = "build/out/secrets.env"
                 maxAge = '1h'
@@ -133,7 +133,7 @@ class K8sFunctionalSpec extends Specification {
 
         writeBuild("""
             plugins { id 'io.slin.secrets' }
-            slinSecrets {
+            secretsLoader {
                 useFile = true
                 targetEnvFile = "build/out/secrets.env"
                 maxAge = '1h'
