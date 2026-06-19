@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'io.slin.gradle'
-version = '1.1.0'
+version = '1.0.0'
 
 java {
     toolchain {
@@ -28,10 +28,10 @@ dependencies {
 
 gradlePlugin {
     // Required for the Plugin Portal (harmless otherwise):
-    // website = 'https://github.com/slin86/k8s-secrets-gradle-plugin'
-    // vcsUrl  = 'https://github.com/slin86/k8s-secrets-gradle-plugin'
+    // website = 'https://github.com/slin86/cloud-secrets-gradle-plugin'
+    // vcsUrl  = 'https://github.com/slin86/cloud-secrets-gradle-plugin'
     plugins {
-        secretsLoader {
+        slinSecrets {
             id = 'io.slin.secrets'
             displayName = 'slin Secrets Loader'
             description = 'Loads Kubernetes and Azure Key Vault secrets locally as environment variables or a cache file.'
@@ -61,7 +61,7 @@ publishing {
         // mavenLocal() is used automatically by publishToMavenLocal.
         maven {
             name = 'GitHubPackages'
-            url = uri('https://maven.pkg.github.com/slin86/k8s-secrets-gradle-plugin')
+            url = uri('https://maven.pkg.github.com/slin86/cloud-secrets-gradle-plugin')
             credentials {
                 username = providers.gradleProperty('gpr.user').orNull ?: System.getenv('GITHUB_ACTOR')
                 password = providers.gradleProperty('gpr.token').orNull ?: System.getenv('GITHUB_TOKEN')
