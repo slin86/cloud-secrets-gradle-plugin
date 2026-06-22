@@ -175,11 +175,6 @@ pluginManagement {
 ```
 Build status: https://jitpack.io/#slin86/cloud-secrets-gradle-plugin
 
-### Gradle Plugin Portal (optional)
-In build.gradle enable the com.gradle.plugin-publish plugin plus website, vcsUrl
-and tags, put the API key in ~/.gradle/gradle.properties, then run
-./gradlew publishPlugins.
-
 ## How it works
 
 1. Both providers (kubectl and az CLI) return a shared map of name to value.
