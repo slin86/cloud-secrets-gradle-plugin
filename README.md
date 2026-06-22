@@ -15,7 +15,7 @@ Coordinates: io.slin.gradle:cloud-secrets-gradle-plugin:1.0.0
 ```gradle
 plugins {
     id 'org.springframework.boot' version '4.1.0'
-    id 'io.slin.secrets' version '1.1.3'
+    id 'io.slin.secrets' version '1.1.4'
 }
 
 secretsLoader {
@@ -157,11 +157,6 @@ gradle wrapper --gradle-version 8.14
 Consumer: mavenLocal() in pluginManagement.repositories of settings.gradle.
 
 ### JitPack (anonymous read, no token)
-Just tag, JitPack builds itself:
-```bash
-git tag 1.0.0
-git push origin 1.0.0
-```
 In the consumer project (settings.gradle):
 ```gradle
 pluginManagement {
