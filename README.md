@@ -156,25 +156,6 @@ gradle wrapper --gradle-version 8.14
 ```
 Consumer: mavenLocal() in pluginManagement.repositories of settings.gradle.
 
-### JitPack (anonymous read, no token)
-In the consumer project (settings.gradle):
-```gradle
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven { url = uri('https://jitpack.io') }
-    }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == 'io.slin.secrets') {
-                useModule("com.github.slin86:cloud-secrets-gradle-plugin:${requested.version}")
-            }
-        }
-    }
-}
-```
-Build status: https://jitpack.io/#slin86/cloud-secrets-gradle-plugin
-
 ## How it works
 
 1. Both providers (kubectl and az CLI) return a shared map of name to value.
