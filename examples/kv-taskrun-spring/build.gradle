@@ -1,0 +1,30 @@
+plugins {
+    id 'org.springframework.boot' version '4.1.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'io.slin.secrets'   // no version, comes from the included build
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+}
+
+// Azure Key Vault source, injected as environment variables into bootRun.
+// type string with an explicit envName gives a clean variable name.
+slinSecrets {
+    tasks = ['bootRun']
+    kvSecrets {
+        azureKeyVaultUrl = 'https://my-vault.vault.azure.net/'
+        secret { name = 'test-secret'; type = 'string'; envName = 'TEST_SECRET' }
+    }
+}

@@ -8,7 +8,9 @@ No pod, no deployment. Both sources offer identical features, only the origin
 of the secrets differs.
 
 Plugin id: io.slin.secrets
-Coordinates: io.slin.gradle:cloud-secrets-gradle-plugin:1.0.0
+Coordinates: io.slin.gradle:cloud-secrets-gradle-plugin:1.1.4
+
+You can find examples in the examples folder.
 
 ## Configuration
 

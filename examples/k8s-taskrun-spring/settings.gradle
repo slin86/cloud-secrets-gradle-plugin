@@ -1,0 +1,9 @@
+pluginManagement {
+    // Pull the plugin straight from the source in this repo, no publish needed.
+    includeBuild('../..')
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'k8s-taskrun-spring'

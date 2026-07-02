@@ -1,0 +1,33 @@
+plugins {
+    id 'application'
+    id 'io.slin.secrets'   // no version, comes from the included build
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass = 'io.slin.example.Main'
+}
+
+// Write the secrets into a properties file. The plain Java app reads the file
+// itself with java.util.Properties. No Spring, no environment injection.
+slinSecrets {
+    useFile = true
+    fileFormat = 'properties'
+    k8sSecrets {
+        secret { namespace = 'kuma-v2'; name = 'test-secret' }
+    }
+}
+
+// Refresh the file before running (respects maxAge).
+tasks.named('run') {
+    dependsOn 'syncSecretsFile'
+}

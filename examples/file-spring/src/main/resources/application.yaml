@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: secrets-demo
+  config:
+    import: "optional:file:./build/slin-secrets/secrets.properties"
