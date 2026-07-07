@@ -18,9 +18,12 @@ class SecretsPlugin implements Plugin<Project> {
 
     static final String TAG = '[slin-secrets]'
 
+    // The DSL block name. Must match every build.gradle, test and example.
+    static final String EXTENSION_NAME = 'secretsLoader'
+
     @Override
     void apply(Project project) {
-        def ext = project.extensions.create('slinSecrets', SecretsExtension)
+        def ext = project.extensions.create(EXTENSION_NAME, SecretsExtension)
 
         def syncTask = project.tasks.register('syncSecretsFile') {
             it.group = 'slin secrets'

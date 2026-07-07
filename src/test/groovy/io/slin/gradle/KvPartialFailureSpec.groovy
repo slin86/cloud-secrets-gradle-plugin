@@ -16,10 +16,6 @@ class KvPartialFailureSpec extends Specification {
     @TempDir
     Path dir
 
-    /**
-     * az stub that succeeds for good-secret and fails for anything else,
-     * simulating a missing permission on the second secret.
-     */
     private Path azPartialStub() {
         Path stub = dir.resolve('az-partial.sh')
         Files.writeString(stub, '''#!/bin/bash
@@ -42,9 +38,9 @@ fi
 
     private GradleRunner runner(String... args) {
         GradleRunner.create()
-            .withProjectDir(dir.toFile())
-            .withPluginClasspath()
-            .withArguments((args as List) + '--stacktrace')
+                .withProjectDir(dir.toFile())
+                .withPluginClasspath()
+                .withArguments((args as List) + '--stacktrace')
     }
 
     def "one inaccessible secret is skipped, the accessible one is still written, build succeeds"() {
@@ -53,7 +49,7 @@ fi
 
         writeBuild("""
             plugins { id 'io.slin.secrets' }
-            slinSecrets {
+            secretsLoader {
                 useFile = true
                 targetEnvFile = "build/out/secrets.env"
                 kvSecrets {
@@ -66,7 +62,6 @@ fi
         """)
 
         when:
-        // .build() (not buildAndFail) already asserts the build does not break
         def result = runner('updateSecretsFile').build()
 
         then:

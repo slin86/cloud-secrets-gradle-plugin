@@ -17,7 +17,7 @@ You can find examples in the examples folder.
 ```gradle
 plugins {
     id 'org.springframework.boot' version '4.1.0'
-    id 'io.slin.secrets' version '1.1.4'
+    id 'io.slin.secrets' version '1.1.6'
 }
 
 secretsLoader {
@@ -157,6 +157,12 @@ gradle wrapper --gradle-version 8.14
 ./gradlew publishToMavenLocal
 ```
 Consumer: mavenLocal() in pluginManagement.repositories of settings.gradle.
+
+### publish
+```bash
+./gradlew publishPlugins --validate-only 
+./gradlew publishPlugins                    
+```
 
 ## How it works
 
