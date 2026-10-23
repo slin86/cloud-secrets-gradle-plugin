@@ -2,9 +2,9 @@ package io.slin.gradle.kv
 
 import groovy.json.JsonSlurper
 import io.slin.gradle.SecretNaming
+import io.slin.gradle.SecretsLog
 import io.slin.gradle.provider.ProcessRunner
 import io.slin.gradle.provider.SecretProvider
-import org.gradle.api.logging.Logger
 
 /**
  * Reads Azure Key Vault secrets via the Azure CLI:
@@ -30,7 +30,7 @@ class KeyVaultSecretProvider implements SecretProvider {
     String sourceName() { 'keyvault' }
 
     @Override
-    Map<String, String> resolve(Logger log) {
+    Map<String, String> resolve(SecretsLog log) {
         def result = [:] as LinkedHashMap
 
         if (!config.azureKeyVaultUrl) {
@@ -42,9 +42,9 @@ class KeyVaultSecretProvider implements SecretProvider {
         config.secrets.each { spec ->
             try {
                 def id = "${base}secrets/${spec.name}"
-                log.lifecycle("[slin-secrets] keyvault loading ${spec.name} (type=${spec.type})")
+                log.info("[slin-secrets] keyvault loading ${spec.name}" + (log.debugEnabled ? " (type=${spec.type})" : ''))
                 def cmd = [config.az, 'keyvault', 'secret', 'show', '--id', id.toString(), '--query', 'value', '-o', 'tsv']
-                log.info("[slin-secrets]   cmd: ${cmd.join(' ')}")
+                log.trace("[slin-secrets]   cmd: ${cmd.join(' ')}")
 
                 def r = ProcessRunner.run(cmd)
                 if (r.exit != 0) {

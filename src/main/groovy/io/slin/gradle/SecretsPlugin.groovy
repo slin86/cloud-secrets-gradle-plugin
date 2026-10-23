@@ -35,30 +35,31 @@ class SecretsPlugin implements Plugin<Project> {
         }
 
         project.afterEvaluate {
+            def log = new SecretsLog(project.logger, ext.logLevel)
             def providers = buildProviders(project, ext)
             def fileService = buildFileService(project, ext)
 
             if (providers.isEmpty()) {
-                project.logger.lifecycle("${TAG} No source configured (neither k8sSecrets nor kvSecrets), plugin inactive.")
+                log.info("${TAG} No source configured (neither k8sSecrets nor kvSecrets), plugin inactive.")
             }
 
             syncTask.configure { t ->
                 t.doLast {
                     if (providers.isEmpty()) return
                     if (fileService.isFresh()) {
-                        project.logger.lifecycle("${TAG} File is fresh (age below maxAge), no reload. (${fileService.file})")
+                        log.info("${TAG} File is fresh (age below maxAge), no reload. (${fileService.file})")
                         return
                     }
-                    refreshFile(project, providers, fileService)
+                    refreshFile(log, providers, fileService)
                 }
             }
             updateTask.configure { t ->
                 t.doLast {
                     if (providers.isEmpty()) {
-                        project.logger.warn("${TAG} No source configured, nothing to update.")
+                        log.warn("${TAG} No source configured, nothing to update.")
                         return
                     }
-                    refreshFile(project, providers, fileService)
+                    refreshFile(log, providers, fileService)
                 }
             }
 
@@ -68,15 +69,15 @@ class SecretsPlugin implements Plugin<Project> {
                         if (ext.useFile) {
                             target.dependsOn(syncTask)
                             target.doFirst {
-                                def entries = readFileSafely(project, fileService)
-                                project.logger.lifecycle("${TAG} Injecting ${entries.size()} variable(s) from file into '${taskName}'.")
-                                TaskInjector.injectEnv(target, entries, project.logger)
+                                def entries = readFileSafely(log, fileService)
+                                log.info("${TAG} Injecting ${entries.size()} variable(s) from file into '${taskName}'.")
+                                TaskInjector.injectEnv(target, entries, log)
                             }
                         } else {
                             target.doFirst {
-                                def entries = resolveAll(project, providers)
-                                project.logger.lifecycle("${TAG} Injecting ${entries.size()} variable(s) directly into '${taskName}'.")
-                                TaskInjector.injectEnv(target, entries, project.logger)
+                                def entries = resolveAll(log, providers)
+                                log.info("${TAG} Injecting ${entries.size()} variable(s) directly into '${taskName}'.")
+                                TaskInjector.injectEnv(target, entries, log)
                             }
                         }
                     }
@@ -120,44 +121,44 @@ class SecretsPlugin implements Plugin<Project> {
 
     // Resolves all providers and merges them. Never throws, so it can never
     // break the build. A failing source only produces a warning.
-    private Map<String, String> resolveAll(Project project, List<SecretProvider> providers) {
+    private Map<String, String> resolveAll(SecretsLog log, List<SecretProvider> providers) {
         def merged = [:] as LinkedHashMap
         providers.each { p ->
             try {
-                merged.putAll(p.resolve(project.logger))
+                merged.putAll(p.resolve(log))
             } catch (Exception e) {
-                project.logger.warn("${TAG} source ${p.sourceName()} failed: ${e.message}")
+                log.warn("${TAG} source ${p.sourceName()} failed: ${e.message}")
             }
         }
         return merged
     }
 
-    private Map<String, String> readFileSafely(Project project, SecretFileService fileService) {
+    private Map<String, String> readFileSafely(SecretsLog log, SecretFileService fileService) {
         try {
             return fileService.read()
         } catch (Exception e) {
-            project.logger.warn("${TAG} could not read cache file: ${e.message}")
+            log.warn("${TAG} could not read cache file: ${e.message}")
             return [:] as LinkedHashMap
         }
     }
 
     // Writes the file from whatever could be resolved. If nothing resolved at
     // all, an existing file is kept. Never throws, the build is never broken.
-    private void refreshFile(Project project, List<SecretProvider> providers, SecretFileService fileService) {
-        def entries = resolveAll(project, providers)
+    private void refreshFile(SecretsLog log, List<SecretProvider> providers, SecretFileService fileService) {
+        def entries = resolveAll(log, providers)
         if (entries.isEmpty()) {
             if (fileService.exists()) {
-                project.logger.warn("${TAG} No secrets resolved, keeping existing file: ${fileService.file}")
+                log.warn("${TAG} No secrets resolved, keeping existing file: ${fileService.file}")
             } else {
-                project.logger.warn("${TAG} No secrets resolved and no cache file present.")
+                log.warn("${TAG} No secrets resolved and no cache file present.")
             }
             return
         }
         try {
             fileService.write(entries)
-            project.logger.lifecycle("${TAG} Wrote ${entries.size()} variable(s): ${fileService.file}")
+            log.info("${TAG} Wrote ${entries.size()} variable(s): ${fileService.file}")
         } catch (Exception e) {
-            project.logger.warn("${TAG} could not write cache file: ${e.message}")
+            log.warn("${TAG} could not write cache file: ${e.message}")
         }
     }
 }

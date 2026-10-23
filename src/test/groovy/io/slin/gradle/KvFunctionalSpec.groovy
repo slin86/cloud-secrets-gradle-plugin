@@ -117,4 +117,66 @@ class KvFunctionalSpec extends Specification {
         then:
         result.output.contains('GOT=injected-value')
     }
+
+    private void writeLogLevelBuild(Path stub, String level) {
+        writeBuild("""
+            plugins { id 'io.slin.secrets' }
+
+            tasks.register('printIt', Exec) {
+                commandLine 'bash', '-c', 'true'
+            }
+
+            secretsLoader {
+                logLevel = '${level}'
+                tasks = ['printIt']
+                kvSecrets {
+                    az = '${stub.toAbsolutePath()}'
+                    azureKeyVaultUrl = 'https://my-vault.vault.azure.net/'
+                    secret { name = 'blob-storage-password'; type = 'string' }
+                }
+            }
+        """)
+    }
+
+    def "logLevel debug prints type and masked variables"() {
+        given:
+        writeLogLevelBuild(azStub('s3cr3t-value'), 'debug')
+
+        when:
+        def out = runner('printIt').build().output
+
+        then:
+        out.contains('[slin-secrets] keyvault loading blob-storage-password (type=string)')
+        out.contains('[slin-secrets]   set BLOB_STORAGE_PASSWORD on printIt = s***(12 chars)')
+        !out.contains('s3cr3t-value')
+    }
+
+    def "logLevel info prints only the loaded keys"() {
+        given:
+        writeLogLevelBuild(azStub('s3cr3t-value'), 'info')
+
+        when:
+        def out = runner('printIt').build().output
+
+        then:
+        out.contains('[slin-secrets] keyvault loading blob-storage-password\n')
+        !out.contains('type=string')
+        !out.contains('set BLOB_STORAGE_PASSWORD')
+    }
+
+    def "logLevel #level prints only warnings"() {
+        given:
+        writeLogLevelBuild(azStub('s3cr3t-value'), level)
+
+        when:
+        def out = runner('printIt').build().output
+
+        then:
+        !out.contains('keyvault loading')
+        !out.contains('Injecting')
+        !out.contains('set BLOB_STORAGE_PASSWORD')
+
+        where:
+        level << ['warn', 'error', 'fatal']
+    }
 }
