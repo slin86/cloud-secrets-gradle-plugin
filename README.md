@@ -24,6 +24,7 @@ secretsLoader {
     // shared options (apply to k8s and kv)
     separator = '_'
     replaceHyphens = false
+    logLevel = 'info'             // debug, info, warn, error, fatal
 
     // Feature 1: inject directly into task(s). Empty means off.
     tasks = ['bootRun']
@@ -69,6 +70,34 @@ kv:
   own variable. The default secret is rootProject.name.
 * type string: one variable, name is the secret name in upper case
   (for example another-secret becomes ANOTHER_SECRET) or explicit via envName.
+
+### Log level
+
+`logLevel` controls how much the plugin prints. Secret values are always masked
+(first character and length only), on every level.
+
+| logLevel | Output |
+|----------|--------|
+| debug | loaded keys with type, plus every injected variable (masked) |
+| info (default) | loaded keys and summary lines |
+| warn, error, fatal | only warnings |
+
+debug:
+```
+[slin-secrets] keyvault loading blob-storage-password (type=string)
+[slin-secrets] Injecting 1 variable(s) directly into 'integrationTest'.
+[slin-secrets]   set AZURE_BLOB_STORAGE_ACCOUNT_KEY on integrationTest = +***(88 chars)
+```
+
+info:
+```
+[slin-secrets] keyvault loading blob-storage-password
+[slin-secrets] Injecting 1 variable(s) directly into 'integrationTest'.
+```
+
+warn, error and fatal only print warnings, for example skipped secrets or an
+unreachable source. The executed kubectl and az commands are only shown with
+`gradle --info`.
 
 ## The two features (identical for both sources)
 

@@ -10,7 +10,7 @@ import org.gradle.process.ProcessForkOptions
  */
 class TaskInjector {
 
-    static void injectEnv(Task task, Map<String, String> entries, org.gradle.api.logging.Logger log) {
+    static void injectEnv(Task task, Map<String, String> entries, SecretsLog log) {
         if (!(task instanceof ProcessForkOptions)) {
             log.warn("[slin-secrets] Task '${task.name}' (${task.class.simpleName}) does not support " +
                 "environment variables, skipped.")
@@ -19,7 +19,7 @@ class TaskInjector {
         def forkable = task as ProcessForkOptions
         entries.each { k, v ->
             forkable.environment(k, v)
-            log.lifecycle("[slin-secrets]   set ${k} on ${task.name} = ${mask(v)}")
+            log.debug("[slin-secrets]   set ${k} on ${task.name} = ${mask(v)}")
         }
     }
 

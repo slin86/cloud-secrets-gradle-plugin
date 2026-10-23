@@ -10,6 +10,7 @@ import io.slin.gradle.kv.KvSecretsConfig
  *       // shared options (apply to k8s and kv)
  *       separator = '_'
  *       replaceHyphens = false
+ *       logLevel = 'info'             // debug, info, warn, error, fatal
  *
  *       // Feature 1: inject directly into task(s) as env vars. Empty means disabled.
  *       tasks = ['bootRun']
@@ -29,6 +30,9 @@ class SecretsExtension {
 
     String separator = '_'
     boolean replaceHyphens = false
+
+    /** debug, info (default), warn, error, fatal. warn, error and fatal only print warnings. */
+    String logLevel = 'info'
 
     /** Tasks to inject into. Empty means the feature is inactive. */
     List<String> tasks = []

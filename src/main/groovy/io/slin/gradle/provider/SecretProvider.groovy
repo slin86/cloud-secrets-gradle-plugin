@@ -1,6 +1,6 @@
 package io.slin.gradle.provider
 
-import org.gradle.api.logging.Logger
+import io.slin.gradle.SecretsLog
 
 /**
  * A source of secrets. Returns a map of envName to value.
@@ -16,7 +16,7 @@ interface SecretProvider {
      * (for example no network or no cluster). This signals "unreachable"
      * and ensures that an existing cache file is not deleted or overwritten.
      */
-    Map<String, String> resolve(Logger log)
+    Map<String, String> resolve(SecretsLog log)
 
     /** Readable name of the source for logs, for example "k8s" or "keyvault". */
     String sourceName()

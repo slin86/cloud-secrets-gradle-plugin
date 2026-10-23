@@ -2,9 +2,9 @@ package io.slin.gradle.k8s
 
 import groovy.json.JsonSlurper
 import io.slin.gradle.SecretNaming
+import io.slin.gradle.SecretsLog
 import io.slin.gradle.provider.ProcessRunner
 import io.slin.gradle.provider.SecretProvider
-import org.gradle.api.logging.Logger
 
 /**
  * Reads Kubernetes secrets via the local kubeconfig (kubectl get secret -o json),
@@ -30,14 +30,14 @@ class K8sSecretProvider implements SecretProvider {
     String sourceName() { 'k8s' }
 
     @Override
-    Map<String, String> resolve(Logger log) {
+    Map<String, String> resolve(SecretsLog log) {
         def result = [:] as LinkedHashMap
 
         config.secrets.each { spec ->
             try {
-                log.lifecycle("[slin-secrets] k8s loading ${spec.namespace}/${spec.name}")
+                log.info("[slin-secrets] k8s loading ${spec.namespace}/${spec.name}")
                 def cmd = [config.kubectl, 'get', 'secret', spec.name, '-n', spec.namespace, '-o', 'json']
-                log.info("[slin-secrets]   cmd: ${cmd.join(' ')}")
+                log.trace("[slin-secrets]   cmd: ${cmd.join(' ')}")
 
                 def r = ProcessRunner.run(cmd)
                 if (r.exit != 0) {
